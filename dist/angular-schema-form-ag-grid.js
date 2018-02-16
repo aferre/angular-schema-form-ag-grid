@@ -1,4 +1,4 @@
-angular.module("schemaForm").run(["$templateCache", function($templateCache) {$templateCache.put("directives/decorators/bootstrap/aggrid/aggridselect.html","<div ng-controller=\"agGridSelectController\" class=\"form-group {{form.htmlClass}}\"\n     ng-class=\"{\'has-error\': hasError(), \'has-success\': hasSuccess()}\">\n    <label class=\"control-label {{form.labelHtmlClass}}\" ng-show=\"showTitle()\">{{form.title}}</label>\n\n <!--   <div class=\"form-group {{form.fieldHtmlClass}}\" ng-init=\"populateList(form)\">-->\n    <div class=\"form-group {{form.fieldHtmlClass}}\">\n        <input  ag-grid-select type=\"hidden\" class=\"btn btn-default\" sf-changed=\"form\" schema-validate=\"form\" ng-model=\"$$value$$\"\n                \n               >\n        </input>\n\n        <div>\n       <!--       <span ng-show=\"$$value$$\" class=\"bg-info\">value: {{ $$value$$ }}</span> -->\n       <!--       <span ng-show=\"!$$value$$\" class=\"bg-danger\">value</span>-->\n            <button class=\"btn btn-default\" ng-click=\"selectAll(true)\"> {{ \'Select all\' | translate }}</button>\n            <button class=\"btn btn-default\" ng-click=\"selectAll(false)\"> {{ \'Deselect all\' | translate }}</button>\n        </div>\n        <div style=\"height: 200px;\">\n            <div ag-grid=\"gridOptions\" class=\"ag-fresh\" style=\"height: 100%;\"></div>\n        </div>\n\n        <span class=\"help-block\">{{ (hasError() && errorMessage(schemaError())) || form.description}}</span>\n    </div>\n</div>\n");}]);
+angular.module("schemaForm").run(["$templateCache", function($templateCache) {$templateCache.put("directives/decorators/bootstrap/aggrid/aggridselect.html","<div ng-controller=\"agGridSelectController\" class=\"form-group {{form.htmlClass}}\"\n     ng-class=\"{\'has-error\': hasError(), \'has-success\': hasSuccess()}\">\n    <label class=\"control-label {{form.labelHtmlClass}}\" ng-show=\"showTitle()\">{{form.title}}</label>\n\n <!--   <div class=\"form-group {{form.fieldHtmlClass}}\" ng-init=\"populateList(form)\">-->\n \n    <div class=\"form-group {{form.fieldHtmlClass}}\">\n        <input  ag-grid-select type=\"hidden\" class=\"btn btn-default\" sf-changed=\"form\" schema-validate=\"form\" ng-model=\"$$value$$\"\n                \n               >\n        </input>\n\n        <div>\n       <!--       <span ng-show=\"$$value$$\" class=\"bg-info\">value: {{ $$value$$ }}</span> -->\n       <!--       <span ng-show=\"!$$value$$\" class=\"bg-danger\">value</span>-->\n        {{\'Filter\'|translate}}:\n            <input placeholder=\"{{\'Criteria...\'|translate}}\" type=\"text\" ng-model=\"chargerFilter\" ng-paste=\"onFilterChanged(chargerFilter)\" ng-change=\"onFilterChanged(chargerFilter)\" />\n            <button class=\"btn btn-default\" ng-click=\"selectAll(true)\"> {{ \'Select all\' | translate }}</button>\n            <button class=\"btn btn-default\" ng-click=\"selectAll(false)\"> {{ \'Deselect all\' | translate }}</button>\n        </div>\n        <div style=\"height: 200px;\">\n            <div ag-grid=\"gridOptions\" class=\"ag-fresh\" style=\"height: 100%;\"></div>\n        </div>\n\n        <span class=\"help-block\">{{ (hasError() && errorMessage(schemaError())) || form.description}}</span>\n    </div>\n</div>\n");}]);
 angular.module('schemaForm').config(
     ['schemaFormProvider', 'schemaFormDecoratorsProvider', 'sfPathProvider',
         function (schemaFormProvider, schemaFormDecoratorsProvider, sfPathProvider) {
@@ -49,15 +49,14 @@ angular.module('schemaForm').controller('agGridSelectController', ['$scope', '$h
     }
 
     $scope.agGridData_model = {};
+    $scope.chargerFilter = "";
 
-
-    var tt = "alerts.0.chargers";
     var keyAr = $scope.form.key;
     
-        var valNeeded = $scope.$parent.$parent.$parent.model;
-        for (var i in keyAr){
-            valNeeded = valNeeded[keyAr[i]];
-        }
+    var valNeeded = $scope.$parent.$parent.$parent.model;
+    for (var i in keyAr){
+        valNeeded = valNeeded[keyAr[i]];
+    }
 
     if (valNeeded ){
         $scope.agGridData_model = valNeeded ;
@@ -74,6 +73,10 @@ angular.module('schemaForm').controller('agGridSelectController', ['$scope', '$h
         console.log(model);
     }
 
+    $scope.onFilterChanged = function(value) {
+        $scope.gridOptions.api.setQuickFilter(value);
+    }
+    
     $scope.getCallback = function (callback) {
         if (typeof(callback) == "string") {
             var _result = $scope.$parent.evalExpr(callback);
@@ -100,8 +103,16 @@ angular.module('schemaForm').controller('agGridSelectController', ['$scope', '$h
         columnDefs = $scope.getCallback($scope.form.options.columnDefs)();
 
     console.log("initing gridOptions");
+    var additionalColDef = [{
+        	headerValueGetter: function(params) {
+                return ""
+            },
+        	width: 30,
+            checkboxSelection: true
+    }];
+    var computedCols = additionalColDef.concat(columnDefs);
     $scope.gridOptions = {
-            columnDefs: columnDefs,
+            columnDefs: computedCols,
             angularCompileRows: true,
             enableFilter: true,
             enableSorting: true,
@@ -117,21 +128,26 @@ angular.module('schemaForm').controller('agGridSelectController', ['$scope', '$h
                $scope.onGridReadyCB();
             },
             onSelectionChanged: function() {
-                var selectItems = $scope.gridOptions.api.getSelectedRows();
-//                $scope.insideModel = $scope.selectItems;
-                $scope.selectedItems = selectItems;
-                var parentScope = $scope.$parent;
-                $scope.getCallback
-                if ($scope.form.options.postSelection){
-                    selectItems = $scope.getCallback($scope.form.options.postSelection)(selectItems);
-                }
-                $scope.agGridData_model = selectItems;
-                var model = $scope.ngModel; 
-               // model.$setViewValue(selectItems);
-                
+            	if ($scope.initingGridFromList)
+            		return;
+            	$scope.onSelectionChanged();
             }
         };
 
+    $scope.onSelectionChanged = function(){
+    	var selectItems = $scope.gridOptions.api.getSelectedRows();
+//      $scope.insideModel = $scope.selectItems;
+      $scope.selectedItems = selectItems;
+      console.log("onselectionchanged " + JSON.stringify($scope.selectedItems));
+      var parentScope = $scope.$parent;
+      
+      if ($scope.form.options.postSelection){
+          selectItems = $scope.getCallback($scope.form.options.postSelection)(selectItems);
+      }
+      $scope.agGridData_model = selectItems;
+      var model = $scope.ngModel; 
+     // model.$setViewValue(selectItems);
+    }
     $scope.triggerinitialData = function () {
         console.log("listener triggered");
         // Ugly workaround to trigger initialData expression re-evaluation so that the selectFilter it reapplied.
@@ -155,7 +171,6 @@ angular.module('schemaForm').controller('agGridSelectController', ['$scope', '$h
 
     $scope.finalizeList = function (form, data, newOptions) {
         // Remap the data
-
 
         if (newOptions && "map" in newOptions && newOptions .map) {
             var current_row = null,
@@ -182,7 +197,6 @@ angular.module('schemaForm').controller('agGridSelectController', ['$scope', '$h
 
         }
         else {
-
             data.forEach(function (item) {
                     if ("text" in item) {
                         item.name = item.text
@@ -194,19 +208,29 @@ angular.module('schemaForm').controller('agGridSelectController', ['$scope', '$h
         }
 
         if ($scope.agGridData_model) {
-            
-            $scope.gridOptions.api.forEachNode(function(rowNode, index) {
-             //   console.log($scope.agGridData_model);
-                for (var i in $scope.agGridData_model) {
-                    var val = $scope.agGridData_model[i];
-                    if (val !== undefined) {
-                        console.log('Comparing row ' + rowNode + ' to ' + JSON.stringify(val));
-                        if (rowNode.data.id == val.id) {
-                            $scope.gridOptions.api.selectNode(rowNode);
-                        }
-                    }
+        	$scope.initingGridFromList = true;
+        	for (var i in $scope.agGridData_model) {
+                var val = $scope.agGridData_model[i];
+                if (val) {
+                	var keepGoing = true;
+                	$scope.gridOptions.api.forEachNode(function(rowNode, index) {
+                		if (keepGoing){
+                			console.log('Comparing row ' + rowNode + ' to ' + JSON.stringify(val));
+	                        if ( $scope.form.options.compareFunction ){
+	                        	if ($scope.getCallback($scope.form.options.compareFunction)(rowNode.data , val)){
+	                        		$scope.gridOptions.api.selectNode(rowNode,true);
+	                        		console.log('Selecting row ' + rowNode);
+	                        		keepGoing = false;
+	                        	}
+	                        } else if (rowNode.data.id == val.id) {
+	                            $scope.gridOptions.api.selectNode(rowNode,true);
+	                            keepGoing = false;
+	                        }
+                		}
+                	});
                 }
-            });
+        	}
+        	$scope.initingGridFromList = false;
         }
 
         // The ui-selects needs to be reinitialized (UI select sets the internalModel and externalModel.
@@ -235,6 +259,14 @@ angular.module('schemaForm').controller('agGridSelectController', ['$scope', '$h
         else $scope.gridOptions.api.deselectAll();
     }
 
+    $scope.selectAllAfterFilter = function(select) {
+    	$scope.gridOptions.api.forEachNodeAfterFilter(function printNode(node, index) {
+    		if (select) $scope.gridOptions.api.selectNode(node,true,true);
+    		else $scope.gridOptions.api.deselectNode(node,true,true);
+    	});
+    	$scope.onSelectionChanged();
+    }
+    
     $scope.getOptions = function (options, search) {
         // If defined, let the a callback function manipulate the options
         if (options.httpPost && options.httpPost.optionsCallback) {
