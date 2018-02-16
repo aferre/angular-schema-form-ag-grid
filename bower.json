@@ -1,0 +1,47 @@
+{
+  "name": "angular-schema-form-ag-grid",
+  "description": "Angular schema form add-on for ag grid.",
+  "main": [
+    "angular-schema-form-ag-grid.js"
+  ],
+  "version": "0.1.0",
+  "authors": [
+    "Adrien Ferré<ferre.adrien@gmail.com>"
+  ],
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "angular-schema-form",
+    "angular-schema-form-add-on",
+    "schema-form",
+    "form",
+    "json",
+    "json-schema",
+    "schema",
+"ag-grid"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "coverage"
+  ],
+  "dependencies": {
+    "angular-schema-form": "^0",
+    "angular-schema-form-bootstrap": "^0",
+    "angular-strap": "^2",
+    "bootstrap": "^3",
+    "ag-grid": "~3.1.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aferre/angular-schema-form-ag-grid.git"
+  },
+  "devDependencies": {
+    "angular-translate": ">= 2.4.0",
+    "angular-mocks": ">= 1.2"
+  }
+}

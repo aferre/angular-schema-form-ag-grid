@@ -1,0 +1,27 @@
+<div ng-controller="agGridSelectController" class="form-group {{form.htmlClass}}"
+     ng-class="{'has-error': hasError(), 'has-success': hasSuccess()}">
+    <label class="control-label {{form.labelHtmlClass}}" ng-show="showTitle()">{{form.title}}</label>
+
+ <!--   <div class="form-group {{form.fieldHtmlClass}}" ng-init="populateList(form)">-->
+ 
+    <div class="form-group {{form.fieldHtmlClass}}">
+        <input  ag-grid-select type="hidden" class="btn btn-default" sf-changed="form" schema-validate="form" ng-model="$$value$$"
+                
+               >
+        </input>
+
+        <div>
+       <!--       <span ng-show="$$value$$" class="bg-info">value: {{ $$value$$ }}</span> -->
+       <!--       <span ng-show="!$$value$$" class="bg-danger">value</span>-->
+        {{'Filter'|translate}}:
+            <input placeholder="{{'Criteria...'|translate}}" type="text" ng-model="chargerFilter" ng-paste="onFilterChanged(chargerFilter)" ng-change="onFilterChanged(chargerFilter)" />
+            <button class="btn btn-default" ng-click="selectAll(true)"> {{ 'Select all' | translate }}</button>
+            <button class="btn btn-default" ng-click="selectAll(false)"> {{ 'Deselect all' | translate }}</button>
+        </div>
+        <div style="height: 200px;">
+            <div ag-grid="gridOptions" class="ag-fresh" style="height: 100%;"></div>
+        </div>
+
+        <span class="help-block">{{ (hasError() && errorMessage(schemaError())) || form.description}}</span>
+    </div>
+</div>
