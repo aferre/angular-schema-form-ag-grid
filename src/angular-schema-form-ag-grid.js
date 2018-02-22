@@ -53,8 +53,10 @@ angular.module('schemaForm').controller('agGridSelectController', ['$scope', '$h
     var keyAr = $scope.form.key;
     
     var valNeeded = $scope.$parent.$parent.$parent.model;
-    for (var i in keyAr){
-        valNeeded = valNeeded[keyAr[i]];
+    if (valNeeded) {
+        for (var i in keyAr){
+            valNeeded = valNeeded[keyAr[i]];
+        }
     }
 
     if (valNeeded ){
